@@ -1,0 +1,11 @@
+__pycache__
+dist
+build
+*.egg-info
+
+inigo_py/lib
+
+.idea
+.vscode
+
+.DS_Store
