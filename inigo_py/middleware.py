@@ -81,7 +81,7 @@ class Query:
         self.handle = 0
 
 
-class InigoMiddleware:
+class DjangoMiddleware:
     get_response: Callable
     path: str = '/graphql'  # default value
     jwt: str = 'authorization'  # authorization header name, jwt expected

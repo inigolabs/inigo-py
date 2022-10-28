@@ -23,9 +23,9 @@ settings.configure(
     CORS_ALLOW_ALL_ORIGINS=True,  # Disable host header validation
     GRAPHENE={'SCHEMA': 'schema.schema'},
     INIGO={
-        'PATH': '/query',
+        'PATH': '/query',  # default value: /graphql
+        'JWT': 'authorization',  # default value: authorization
         'TOKEN': env('INIGO_SERVICE_TOKEN'),
-        'JWT': 'authorization',
     },
 
     MIDDLEWARE=[
@@ -36,7 +36,7 @@ settings.configure(
         'django.contrib.auth.middleware.AuthenticationMiddleware',
 
         'middleware.auth',
-        'inigo_py.InigoMiddleware',
+        'inigo_py.DjangoMiddleware',
     ]
 )
 
