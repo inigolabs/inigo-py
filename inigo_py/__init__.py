@@ -1,7 +1,7 @@
 from .ffi import get_version
-from .middleware import InigoMiddleware
+from .middleware import DjangoMiddleware
 
 __all__ = [
     'get_version',
-    'InigoMiddleware'
+    'DjangoMiddleware'
 ]
