@@ -184,6 +184,11 @@ class DjangoMiddleware:
         # forward to request handler
         response = self.get_response(request)
 
+        if response.headers.get('content-type') != 'application/json':
+            q.ingest()
+
+            return response
+
         # inigo: process response
         processed_response = q.process_response(response.content)
         if processed_response:
