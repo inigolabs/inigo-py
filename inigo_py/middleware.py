@@ -132,16 +132,22 @@ class DjangoMiddleware:
 
     def __call__(self, request: HttpRequest) -> HttpResponse:
         # POST request guard
-        if request.method != "POST":
-            return self.get_response(request)
+        # if request.method != "POST":
+        #     return self.get_response(request)
 
         # 'path' guard -> /graphql
         if request.path != self.path:
             return self.get_response(request)
 
         # read request from body
-        body = json.loads(request.body)
-        q = Query(self.instance, body.get('query'))
+        query: str = ''
+
+        if request.method == "POST":
+            query = json.loads(request.body).get('query')
+        elif request.method == "GET":
+            query = request.GET.get('query')
+
+        q = Query(self.instance, query)
 
         auth = self.get_auth_token(self.jwt, request)
 
@@ -161,10 +167,19 @@ class DjangoMiddleware:
 
         # modify query if required
         if status and status.get('errors') is not None:
-            body.update({
-                'query': output.get('query')
-            })
-            request._body = str.encode(json.dumps(body))
+            if request.method == "POST":
+                body = json.loads(request.body)
+                body.update({
+                    'query': output.get('query')
+                })
+
+                request._body = str.encode(json.dumps(body))
+            elif request.method == "GET":
+                params = request.GET.copy()
+                params.update({
+                    'query': output.get('query')
+                })
+                request.GET = params
 
         # forward to request handler
         response = self.get_response(request)
