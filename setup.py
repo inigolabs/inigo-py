@@ -4,10 +4,11 @@ import pathlib
 # read README.md
 root = pathlib.Path(__file__).parent.resolve()
 long_description = (root / "README.md").read_text(encoding="utf-8")
+version = (root / "inigo_py" / "VERSION").read_text(encoding="utf-8").strip()
 
 setuptools.setup(
     name='inigo_py',
-    version='0.0.21',
+    version=version,
     author='Nikolai Kaploniuk',
     author_email='nkaploniuk@inigo.io',
     description='Inigo Middleware',
@@ -31,6 +32,9 @@ setuptools.setup(
     ],
     keywords="api graphql inigo django graphene",
     package_data={
-        'inigo_py': ['lib/*']
+        'inigo_py': [
+            'lib/*',
+            'VERSION'
+        ]
     },
 )
