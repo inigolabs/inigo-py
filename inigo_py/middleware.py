@@ -131,10 +131,6 @@ class DjangoMiddleware:
             raise Exception('error, instance can not be created')
 
     def __call__(self, request: HttpRequest) -> HttpResponse:
-        # POST request guard
-        # if request.method != "POST":
-        #     return self.get_response(request)
-
         # 'path' guard -> /graphql
         if request.path != self.path:
             return self.get_response(request)
@@ -149,6 +145,10 @@ class DjangoMiddleware:
 
         q = Query(self.instance, query)
 
+        # create inigo context if not present. Should exist before 'get_auth_token' call
+        if request.inigo is None:
+            request.inigo = InigoContext()
+
         auth = self.get_auth_token(self.jwt, request)
 
         # inigo: process request
@@ -162,6 +162,8 @@ class DjangoMiddleware:
 
         if status and status.get('status') == "BLOCKED":
             q.ingest()
+
+            request.inigo._block()
 
             return self.respond(status)
 
@@ -199,8 +201,11 @@ class DjangoMiddleware:
     @staticmethod
     def get_auth_token(header: str, request: HttpRequest) -> str:
         # read from request object
-        if hasattr(request, "inigo"):
-            return jwt.encode(request.inigo, key=None, algorithm=None)
+        if isinstance(request.inigo, InigoContext) and request.inigo.auth:
+            return jwt.encode(request.inigo.auth, key=None, algorithm=None)
+
+        if isinstance(request.inigo, InigoContext) is False:
+            raise Exception("'inigo' attr is not InigoContext instance")
 
         # read auth header
         if request.headers.get(header):
@@ -219,3 +224,23 @@ class DjangoMiddleware:
             response['extensions'] = data.get('extensions')
 
         return JsonResponse(response, status=200)
+
+
+class InigoContext:
+    __auth: Dict | None = None
+    __blocked: bool = False
+
+    @property
+    def auth(self):
+        return self.__auth
+
+    @auth.setter
+    def auth(self, value: Dict):
+        self.__auth = value
+
+    @property
+    def blocked(self):
+        return self.__blocked
+
+    def _block(self):
+        self.__blocked = True
