@@ -3,17 +3,17 @@ import platform
 import ctypes
 
 
-def get_arch():
+def get_arch() -> str:
     arch, _ = platform.architecture()
     match arch:
-        case "32bit":
-            return "i386"
-        case "64bit":
-            return "amd64"
+        case '32bit':
+            return 'i386'
+        case '64bit':
+            return 'amd64'
     return arch
 
 
-def get_ext(system_name: str):
+def get_ext(system_name: str) -> str:
     match system_name:
         case 'windows':
             return '.dll'

@@ -83,7 +83,7 @@ class Query:
 
 class DjangoMiddleware:
     get_response: Callable
-    path: str = '/graphql'  # default value
+    path: str = '/graphql'      # default value
     jwt: str = 'authorization'  # authorization header name, jwt expected
 
     def __init__(self, get_response: Callable):
@@ -94,7 +94,7 @@ class DjangoMiddleware:
 
         inigo_settings: Dict = {}
 
-        if hasattr(settings, "INIGO"):
+        if hasattr(settings, 'INIGO'):
             inigo_settings = settings.INIGO
 
         # process Inigo settings
@@ -112,18 +112,18 @@ class DjangoMiddleware:
         if inigo_settings.get('GRAPHENE_SCHEMA'):
             schema = import_string(inigo_settings.get('GRAPHENE_SCHEMA'))
         else:
-            if hasattr(settings, "GRAPHENE") and settings.GRAPHENE.get('SCHEMA'):
+            if hasattr(settings, 'GRAPHENE') and settings.GRAPHENE.get('SCHEMA'):
                 schema = import_string(settings.GRAPHENE.get('SCHEMA'))
 
         if schema:
             c.schema = str.encode(str(schema))
             c.introspection = b'{ "data": %s }' % str.encode(str(json.dumps(schema.introspect())))
 
-        if inigo_settings.get("PATH"):
-            self.path = inigo_settings.get("PATH")
+        if inigo_settings.get('PATH'):
+            self.path = inigo_settings.get('PATH')
 
-        if inigo_settings.get("JWT"):
-            self.jwt = inigo_settings.get("JWT")
+        if inigo_settings.get('JWT'):
+            self.jwt = inigo_settings.get('JWT')
 
         # create Inigo instance
         self.instance = ffi.create(ctypes.byref(c))
@@ -138,9 +138,9 @@ class DjangoMiddleware:
         # read request from body
         query: str = ''
 
-        if request.method == "POST":
+        if request.method == 'POST':
             query = json.loads(request.body).get('query')
-        elif request.method == "GET":
+        elif request.method == 'GET':
             query = request.GET.get('query')
 
         q = Query(self.instance, query)
@@ -160,7 +160,7 @@ class DjangoMiddleware:
 
             return self.respond(output)
 
-        if status and status.get('status') == "BLOCKED":
+        if status and status.get('status') == 'BLOCKED':
             q.ingest()
 
             request.inigo._block()
@@ -169,14 +169,14 @@ class DjangoMiddleware:
 
         # modify query if required
         if status and status.get('errors') is not None:
-            if request.method == "POST":
+            if request.method == 'POST':
                 body = json.loads(request.body)
                 body.update({
                     'query': output.get('query')
                 })
 
                 request._body = str.encode(json.dumps(body))
-            elif request.method == "GET":
+            elif request.method == 'GET':
                 params = request.GET.copy()
                 params.update({
                     'query': output.get('query')
@@ -200,12 +200,12 @@ class DjangoMiddleware:
 
     @staticmethod
     def get_auth_token(header: str, request: HttpRequest) -> str:
-        # read from request object
-        if isinstance(request.inigo, InigoContext) and request.inigo.auth:
-            return jwt.encode(request.inigo.auth, key=None, algorithm=None)
-
-        if isinstance(request.inigo, InigoContext) is False:
+        if hasattr(request, 'inigo') and isinstance(request.inigo, InigoContext) is False:
             raise Exception("'inigo' attr is not InigoContext instance")
+
+        # read from request object
+        if hasattr(request, 'inigo') and isinstance(request.inigo, InigoContext) and request.inigo.auth:
+            return jwt.encode(request.inigo.auth, key=None, algorithm=None)
 
         # read auth header
         if request.headers.get(header):

@@ -17,6 +17,8 @@ setuptools.setup(
     url='https://github.com/kolia-kaploniuk/inigo-py',
     project_urls={
         "Bug Tracker": "https://github.com/kolia-kaploniuk/inigo-py/issues",
+        "Documentation": "https://docs.inigo.io",
+        "Support": "https://slack.inigo.io",
     },
     license='MIT',
     packages=['inigo_py'],
