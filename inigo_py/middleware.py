@@ -17,7 +17,7 @@ class Query:
         self.instance = instance
         self.query = str.encode(query)
 
-    def process_request(self, auth: str) -> (Dict, Dict):
+    def process_request(self, jwt: str) -> (Dict, Dict):
         resp_input = ctypes.create_string_buffer(self.query)
 
         output_ptr = ctypes.c_char_p()
@@ -26,11 +26,13 @@ class Query:
         status_ptr = ctypes.c_char_p()
         status_len = ctypes.c_int()
 
-        auth = ctypes.create_string_buffer(b'{"jwt":"%s"}' % str.encode(auth))
+        auth = b''
+        if jwt:
+            auth = ctypes.create_string_buffer(b'{"jwt":"%s"}' % str.encode(jwt))
 
         self.handle = ffi.process_request(self.instance,
                                           auth, len(auth),
-                                          resp_input, len(resp_input),
+                                          resp_input, len(self.query),
                                           ctypes.byref(output_ptr), ctypes.byref(output_len),
                                           ctypes.byref(status_ptr), ctypes.byref(status_len))
 
@@ -146,13 +148,13 @@ class DjangoMiddleware:
         q = Query(self.instance, query)
 
         # create inigo context if not present. Should exist before 'get_auth_token' call
-        if request.inigo is None:
+        if hasattr(request, 'inigo') is False:
             request.inigo = InigoContext()
 
-        auth = self.get_auth_token(self.jwt, request)
+        jwt = self.get_auth_token(self.jwt, request)
 
         # inigo: process request
-        output, status = q.process_request(auth)
+        output, status = q.process_request(jwt)
 
         # introspection query
         if output and output.get('data') and output.get('data').get('__schema'):
