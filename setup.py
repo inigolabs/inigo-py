@@ -27,7 +27,6 @@ setuptools.setup(
         'Development Status :: 2 - Pre-Alpha',
         'Framework :: Django',
         'License :: OSI Approved :: MIT License',
-        'Typing :: Typed',
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Libraries',
         'Programming Language :: Python :: 3',

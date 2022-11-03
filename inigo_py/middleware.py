@@ -1,23 +1,19 @@
 import ctypes
 import json
 import jwt
-from typing import Dict, Callable, Any
-from django.http import JsonResponse, HttpRequest, HttpResponse
+from django.http import JsonResponse
 from django.utils.module_loading import import_string
 from django.conf import settings
 from . import ffi
 
 
 class Query:
-    instance: int
-    handle: int
-    query: bytes
-
     def __init__(self, instance: int, query: str):
+        self.handle = 0
         self.instance = instance
         self.query = str.encode(query)
 
-    def process_request(self, jwt: str) -> (Dict, Dict):
+    def process_request(self, token):
         resp_input = ctypes.create_string_buffer(self.query)
 
         output_ptr = ctypes.c_char_p()
@@ -27,17 +23,17 @@ class Query:
         status_len = ctypes.c_int()
 
         auth = b''
-        if jwt:
-            auth = ctypes.create_string_buffer(b'{"jwt":"%s"}' % str.encode(jwt))
+        if token:
+            auth = b'{"jwt":"%s"}' % str.encode(token)
 
         self.handle = ffi.process_request(self.instance,
-                                          auth, len(auth),
+                                          ctypes.create_string_buffer(auth), len(auth),
                                           resp_input, len(self.query),
                                           ctypes.byref(output_ptr), ctypes.byref(output_len),
                                           ctypes.byref(status_ptr), ctypes.byref(status_len))
 
-        output_dict: Dict = {}
-        status_dict: Dict = {}
+        output_dict = {}
+        status_dict = {}
 
         if output_len.value:
             output_dict = json.loads(output_ptr.value[:output_len.value].decode("utf-8"))
@@ -50,7 +46,7 @@ class Query:
 
         return output_dict, status_dict
 
-    def process_response(self, resp_body: bytes) -> Dict | None:
+    def process_response(self, resp_body):
         if self.handle == 0:
             return None
 
@@ -64,7 +60,7 @@ class Query:
             ctypes.byref(output_ptr), ctypes.byref(output_len)
         )
 
-        output_dict: Dict[str:Any] = {}
+        output_dict = {}
 
         if output_len.value:
             output_dict = json.loads(output_ptr.value[:output_len.value].decode("utf-8"))
@@ -84,17 +80,17 @@ class Query:
 
 
 class DjangoMiddleware:
-    get_response: Callable
-    path: str = '/graphql'      # default value
-    jwt: str = 'authorization'  # authorization header name, jwt expected
+    def __init__(self, get_response):
+        # default values
+        self.path = '/graphql'
+        self.jwt = 'authorization'  # authorization header name, jwt expected
 
-    def __init__(self, get_response: Callable):
         # save response processing fn
         self.get_response = get_response
 
         c = ffi.Config()
 
-        inigo_settings: Dict = {}
+        inigo_settings = {}
 
         if hasattr(settings, 'INIGO'):
             inigo_settings = settings.INIGO
@@ -129,16 +125,17 @@ class DjangoMiddleware:
 
         # create Inigo instance
         self.instance = ffi.create(ctypes.byref(c))
+
         if self.instance == 0:
             raise Exception('error, instance can not be created')
 
-    def __call__(self, request: HttpRequest) -> HttpResponse:
+    def __call__(self, request):
         # 'path' guard -> /graphql
         if request.path != self.path:
             return self.get_response(request)
 
         # read request from body
-        query: str = ''
+        query = ''
 
         if request.method == 'POST':
             query = json.loads(request.body).get('query')
@@ -151,10 +148,10 @@ class DjangoMiddleware:
         if hasattr(request, 'inigo') is False:
             request.inigo = InigoContext()
 
-        jwt = self.get_auth_token(self.jwt, request)
+        token = self.get_auth_token(self.jwt, request)
 
         # inigo: process request
-        output, status = q.process_request(jwt)
+        output, status = q.process_request(token)
 
         # introspection query
         if output and output.get('data') and output.get('data').get('__schema'):
@@ -201,7 +198,7 @@ class DjangoMiddleware:
         return response
 
     @staticmethod
-    def get_auth_token(header: str, request: HttpRequest) -> str:
+    def get_auth_token(header, request):
         if hasattr(request, 'inigo') and isinstance(request.inigo, InigoContext) is False:
             raise Exception("'inigo' attr is not InigoContext instance")
 
@@ -214,7 +211,7 @@ class DjangoMiddleware:
             return request.headers.get(header)
 
     @staticmethod
-    def respond(data: Dict) -> JsonResponse:
+    def respond(data):
         response = {
             'data': data.get('data'),
         }
@@ -229,15 +226,16 @@ class DjangoMiddleware:
 
 
 class InigoContext:
-    __auth: Dict | None = None
-    __blocked: bool = False
+    def __init__(self):
+        self.__auth = None
+        self.__blocked = False
 
     @property
     def auth(self):
         return self.__auth
 
     @auth.setter
-    def auth(self, value: Dict):
+    def auth(self, value):
         self.__auth = value
 
     @property
