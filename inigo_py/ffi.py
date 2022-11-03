@@ -3,30 +3,29 @@ import platform
 import ctypes
 
 
-def get_arch() -> str:
+def get_arch():
     arch, _ = platform.architecture()
-    match arch:
-        case '32bit':
-            return 'i386'
-        case '64bit':
-            return 'amd64'
+    if arch == '32bit':
+        return 'i386'
+    elif arch == '64bit':
+        return 'amd64'
+
     return arch
 
 
-def get_ext(system_name: str) -> str:
-    match system_name:
-        case 'windows':
-            return '.dll'
-        case 'darwin':
-            return '.dylib'
+def get_ext(system_name):
+    if system_name == 'windows':
+        return '.dll'
+    elif system_name == 'darwin':
+        return '.dylib'
+
     return '.so'
 
 
 system = platform.system().lower()  # linux, windows, darwin
 
-library = ctypes.CDLL(os.path.join(
-    os.path.dirname(__file__), 'lib', f'inigo-{ system }-{ get_arch() }{ get_ext(system) }'
-))
+filename = f'inigo-{ system }-{ get_arch() }{ get_ext(system) }'
+library = ctypes.CDLL(os.path.join(os.path.dirname(__file__), 'lib', filename))
 
 
 class Config(ctypes.Structure):
