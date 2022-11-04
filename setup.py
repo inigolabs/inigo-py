@@ -30,7 +30,12 @@ setuptools.setup(
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Libraries',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9'
+        'Programming Language :: Python :: 3.10'
+        'Programming Language :: Python :: 3.11'
     ],
+    python_requires='>= 3.8',
     keywords="api graphql inigo django graphene",
     package_data={
         'inigo_py': [
