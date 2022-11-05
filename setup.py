@@ -16,7 +16,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url='https://github.com/kolia-kaploniuk/inigo-py',
     project_urls={
-        "Bug Tracker": "https://github.com/kolia-kaploniuk/inigo-py/issues",
+        "Bug Tracker": "https://github.com/inigolabs/inigo-py/issues",
         "Documentation": "https://docs.inigo.io",
         "Support": "https://slack.inigo.io",
     },
