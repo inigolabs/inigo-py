@@ -81,12 +81,16 @@ class Query:
 
 class DjangoMiddleware:
     def __init__(self, get_response):
+        # save response processing fn
+        self.get_response = get_response
+
+        if ffi.library is None:
+            # library is not found, skip middleware initialization
+            return
+
         # default values
         self.path = '/graphql'
         self.jwt = 'authorization'  # authorization header name, jwt expected
-
-        # save response processing fn
-        self.get_response = get_response
 
         c = ffi.Config()
 
@@ -130,6 +134,10 @@ class DjangoMiddleware:
             raise Exception('error, instance can not be created')
 
     def __call__(self, request):
+        # ignore execution if Inigo is not initialized
+        if not self.instance:
+            return self.get_response(request)
+
         # 'path' guard -> /graphql
         if request.path != self.path:
             return self.get_response(request)
@@ -200,7 +208,7 @@ class DjangoMiddleware:
     @staticmethod
     def get_auth_token(header, request):
         if hasattr(request, 'inigo') and isinstance(request.inigo, InigoContext) is False:
-            raise Exception("'inigo' attr is not InigoContext instance")
+            raise Warning("'inigo' attr is not InigoContext instance")
 
         # read from request object
         if hasattr(request, 'inigo') and isinstance(request.inigo, InigoContext) and request.inigo.auth:

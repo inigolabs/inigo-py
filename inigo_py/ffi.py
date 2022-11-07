@@ -3,14 +3,31 @@ import platform
 import ctypes
 
 
-def get_arch():
-    arch, _ = platform.architecture()
-    if arch == '32bit':
-        return 'i386'
-    elif arch == '64bit':
-        return 'amd64'
+def get_arch(system_name):
+    machine = platform.machine().lower()
+    if system_name == 'darwin':
+        if machine == 'x86_64':
+            return 'amd64'
+        elif machine == 'arm64':
+            return 'arm64'
 
-    return arch
+    arch, _ = platform.architecture()
+
+    if system_name == 'linux':
+        if machine == 'x86_64' and arch == '64bit':
+            return 'amd64'
+        elif machine == 'aarch64':
+            return 'arm64'
+        elif machine == 'x86_64' and arch == '32bit':
+            return '386'
+        elif machine.startswith('arm'):  # armv7l
+            return 'arm'
+
+    if system_name == 'windows':
+        if arch == '64bit':
+            return 'amd64'
+
+    return machine
 
 
 def get_ext(system_name):
@@ -23,9 +40,28 @@ def get_ext(system_name):
 
 
 system = platform.system().lower()  # linux, windows, darwin
+filename = f'inigo-{ system }-{ get_arch(system) }{ get_ext(system) }'
 
-filename = f'inigo-{ system }-{ get_arch() }{ get_ext(system) }'
-library = ctypes.CDLL(os.path.join(os.path.dirname(__file__), 'lib', filename))
+library = None
+try:
+    library = ctypes.CDLL(os.path.join(os.path.dirname(__file__), 'lib', filename))
+except Exception as err:
+    # Unable to open libc dynamic library
+    raise Exception(f"""
+    
+      Unable to open inigo shared library. 
+      
+      Please get in touch with us for support:
+      email: support@inigo.io
+      slack: https://slack.inigo.io
+      
+      Please share the below info with us:
+      error:    { str(err) }
+      uname:    { platform.uname().__str__() }
+      arch:     { platform.architecture().__str__() }
+      
+    """)
+
 
 
 class Config(ctypes.Structure):
@@ -39,62 +75,63 @@ class Config(ctypes.Structure):
     ]
 
 
-create = library.create
-create.argtypes = [ctypes.POINTER(Config)]
-create.restype = ctypes.c_uint64
+if library:
+    create = library.create
+    create.argtypes = [ctypes.POINTER(Config)]
+    create.restype = ctypes.c_uint64
 
 
-process_request = library.process_request
-process_request.argtypes = [
-    ctypes.c_uint64,  # instance
-    ctypes.c_char_p, ctypes.c_int,  # header
-    ctypes.c_char_p, ctypes.c_int,  # input
-    ctypes.POINTER(ctypes.c_char_p), ctypes.POINTER(ctypes.c_int),  # output
-    ctypes.POINTER(ctypes.c_char_p), ctypes.POINTER(ctypes.c_int),  # status
-]
-process_request.restype = ctypes.c_uint64
+    process_request = library.process_request
+    process_request.argtypes = [
+        ctypes.c_uint64,  # instance
+        ctypes.c_char_p, ctypes.c_int,  # header
+        ctypes.c_char_p, ctypes.c_int,  # input
+        ctypes.POINTER(ctypes.c_char_p), ctypes.POINTER(ctypes.c_int),  # output
+        ctypes.POINTER(ctypes.c_char_p), ctypes.POINTER(ctypes.c_int),  # status
+    ]
+    process_request.restype = ctypes.c_uint64
 
 
-process_response = library.process_response
-process_response.argtypes = [
-    ctypes.c_uint64,  # instance
-    ctypes.c_uint64,  # request handler
-    ctypes.POINTER(ctypes.c_char), ctypes.c_int,  # input
-    ctypes.POINTER(ctypes.c_char_p), ctypes.POINTER(ctypes.c_int),  # output
-]
-process_response.restype = None
+    process_response = library.process_response
+    process_response.argtypes = [
+        ctypes.c_uint64,  # instance
+        ctypes.c_uint64,  # request handler
+        ctypes.POINTER(ctypes.c_char), ctypes.c_int,  # input
+        ctypes.POINTER(ctypes.c_char_p), ctypes.POINTER(ctypes.c_int),  # output
+    ]
+    process_response.restype = None
 
 
-ingest_query_data = library.ingest_query_data
-ingest_query_data.argtypes = [
-    ctypes.c_uint64,  # instance
-    ctypes.c_uint64  # request handler
-]
-ingest_query_data.restype = None
+    ingest_query_data = library.ingest_query_data
+    ingest_query_data.argtypes = [
+        ctypes.c_uint64,  # instance
+        ctypes.c_uint64  # request handler
+    ]
+    ingest_query_data.restype = None
 
 
-update_schema = library.update_schema
-update_schema.argtypes = [
-    ctypes.c_uint64,  # instance
-    ctypes.c_char_p  # input
-]
-update_schema.restype = ctypes.c_bool
+    update_schema = library.update_schema
+    update_schema.argtypes = [
+        ctypes.c_uint64,  # instance
+        ctypes.c_char_p  # input
+    ]
+    update_schema.restype = ctypes.c_bool
 
 
-get_version = library.get_version
-get_version.argtypes = None
-get_version.restype = ctypes.c_char_p  # version
+    get_version = library.get_version
+    get_version.argtypes = None
+    get_version.restype = ctypes.c_char_p  # version
 
 
-disposeHandle = library.disposeHandle
-disposeHandle.argtypes = [
-    ctypes.c_uint64  # request handler
-]
-disposeHandle.restype = None
+    disposeHandle = library.disposeHandle
+    disposeHandle.argtypes = [
+        ctypes.c_uint64  # request handler
+    ]
+    disposeHandle.restype = None
 
 
-disposeMemory = library.disposeMemory
-disposeMemory.argtypes = [
-    ctypes.c_void_p
-]
-disposeMemory.restype = None
+    disposeMemory = library.disposeMemory
+    disposeMemory.argtypes = [
+        ctypes.c_void_p
+    ]
+    disposeMemory.restype = None
