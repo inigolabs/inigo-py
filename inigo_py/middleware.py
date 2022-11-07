@@ -130,6 +130,10 @@ class DjangoMiddleware:
         # create Inigo instance
         self.instance = ffi.create(ctypes.byref(c))
 
+        error = ffi.check_lasterror()
+        if error:
+            raise Exception(error.decode('utf-8'))
+
         if self.instance == 0:
             raise Exception('error, instance can not be created')
 

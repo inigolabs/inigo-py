@@ -135,3 +135,8 @@ if library:
         ctypes.c_void_p
     ]
     disposeMemory.restype = None
+
+
+    check_lasterror = library.check_lasterror
+    check_lasterror.argtypes = None
+    check_lasterror.restype = ctypes.c_char_p
