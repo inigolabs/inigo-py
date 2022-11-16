@@ -8,7 +8,7 @@ from . import ffi
 
 
 class Query:
-    def __init__(self, instance: int, query: str):
+    def __init__(self, instance, query):
         self.handle = 0
         self.instance = instance
         self.query = str.encode(query)
@@ -119,7 +119,6 @@ class DjangoMiddleware:
 
         if schema:
             c.schema = str.encode(str(schema))
-            c.introspection = b'{ "data": %s }' % str.encode(str(json.dumps(schema.introspect())))
 
         if inigo_settings.get('PATH'):
             self.path = inigo_settings.get('PATH')
