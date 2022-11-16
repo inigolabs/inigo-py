@@ -148,13 +148,11 @@ class DjangoMiddleware:
         if request.path != self.path:
             return self.get_response(request)
 
-        # read request from body
-        query = ''
+        if request.method != 'POST':
+            return self.get_response(request)
 
-        if request.method == 'POST':
-            query = json.loads(request.body).get('query')
-        elif request.method == 'GET':
-            query = request.GET.get('query')
+        # read request from body
+        query = json.loads(request.body).get('query')
 
         q = Query(self.instance, query)
 
