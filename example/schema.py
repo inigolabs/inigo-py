@@ -2,16 +2,14 @@ import datetime
 import math
 import json
 import jwt
+import graphene
+import inigo_py
 
 from ruamel.yaml import YAML
 from pathlib import Path
 
-import environ
-import graphene
-import inigo_py
-
 yaml = YAML(typ='safe', pure=True)
-data = yaml.load(Path(environ.Env()('INIGO_DATA_PATH')))
+data = yaml.load(Path('./starwars_data.yaml'))
 
 
 class Version(graphene.ObjectType):
@@ -36,11 +34,9 @@ class Person(graphene.ObjectType):
     height = graphene.Int(required=True)
     mass = graphene.Float()
     skinColor = graphene.String()
+
     appeared_in = graphene.List(graphene.NonNull('schema.Film'), required=True)
     piloted_starship = graphene.List(graphene.NonNull('schema.Starship'), required=True)
-
-    error = graphene.Boolean()
-    panic = graphene.Boolean()
 
     def resolve_appeared_in(root, info):
         result = []
@@ -53,7 +49,6 @@ class Person(graphene.ObjectType):
 
         return result
 
-
     def resolve_piloted_starship(root, info):
         result = []
         for index, item in enumerate(root.edges.get('piloted_starship')):
@@ -62,7 +57,6 @@ class Person(graphene.ObjectType):
             result.append(v)
 
         return result
-
 
 
 class Vehicle(graphene.ObjectType):
@@ -81,10 +75,8 @@ class Vehicle(graphene.ObjectType):
     model = graphene.String(required=True)
     name = graphene.String(required=True)
     passengerCapacity = graphene.Int()
-    piloted_by = graphene.List(graphene.NonNull(Person), required=True)
 
-    error = graphene.Boolean()
-    panic = graphene.Boolean()
+    piloted_by = graphene.List(graphene.NonNull(Person), required=True)
 
     def resolve_piloted_by(root, info):
         result = []
@@ -122,6 +114,7 @@ class Film(graphene.ObjectType):
     episode_id = graphene.Int(required=True)
     openingCrawl = graphene.String(required=True)
     producer = graphene.String(required=True, deprecation_reason="deprecated")
+
     vehicles = graphene.List(graphene.NonNull(Vehicle))
     planets = graphene.List(graphene.NonNull(Planet))
 
@@ -138,19 +131,6 @@ class Film(graphene.ObjectType):
         return [data.get('planet')[i] for i in root.edges.get('has_planet')]
 
 
-class Species(graphene.ObjectType):
-    id = graphene.ID(required=True)
-    averageHeight = graphene.Int(required=True)
-    averageLifespan = graphene.String(required=True)
-    classification = graphene.String(required=True)
-    designation = graphene.String(required=True)
-    name = graphene.String(required=True)
-    skinColor = graphene.String(required=True)
-    eyeColor = graphene.String(required=True)
-    hairColor = graphene.String(required=True)
-    language = graphene.String(required=True)
-
-
 class Starship(graphene.ObjectType):
     id = graphene.ID(required=True)
     cargoCapacity = graphene.Int()
@@ -165,6 +145,7 @@ class Starship(graphene.ObjectType):
     model = graphene.String(required=True)
     name = graphene.String(required=True)
     passengerCapacity = graphene.Int()
+
     piloted_by = graphene.List(graphene.NonNull(Person), required=True)
 
     def resolve_piloted_by(root, info):
@@ -199,31 +180,19 @@ class FilmInput(graphene.InputObjectType):
     planets = graphene.List(graphene.NonNull(PlanetInput, required=True))
 
 
-class UserAddInput(graphene.InputObjectType):
-    username = graphene.String(required=True)
-    password = graphene.String(required=True)
-    name = graphene.String(required=True)
-    profile = graphene.String(required=True)
-    roles = graphene.NonNull(graphene.List(graphene.String, required=True))
-
-
 class Query(graphene.ObjectType):
     version = graphene.Field(Version, required=True)
 
-    logout = graphene.Field(graphene.Boolean, required=True)
     login = graphene.Field(graphene.String, username=graphene.NonNull(graphene.String), password=graphene.NonNull(graphene.String))
+    logout = graphene.Field(graphene.Boolean, required=True)
 
-    films = graphene.Field(graphene.List(graphene.NonNull(Film)), required=True)
     film = graphene.Field(Film, title=graphene.String(required=True))
+    films = graphene.Field(graphene.List(graphene.NonNull(Film)), required=True)
 
-    people = graphene.Field(graphene.List(graphene.NonNull(Person)), required=True)
-    planets = graphene.Field(graphene.List(graphene.NonNull(Planet)), required=True)
-    species = graphene.Field(graphene.List(graphene.NonNull(Species)), required=True)
     starships = graphene.Field(graphene.List(graphene.NonNull(Starship)), required=True)
-    vehicles = graphene.Field(graphene.List(graphene.NonNull(Vehicle)), required=True)
 
-    def resolve_logout(root, info):
-        return True
+    def resolve_version(root, info):
+        return json.loads(inigo_py.get_version())
 
     def resolve_login(root, info, username, password):
         users = list(filter(lambda item: item['username'] == username, data.get('user')))
@@ -249,8 +218,15 @@ class Query(graphene.ObjectType):
                 )
                 return token
 
-    def resolve_version(root, info):
-        return json.loads(inigo_py.get_version())
+    def resolve_logout(root, info):
+        return True
+
+    def resolve_film(root, info, title):
+        for index, film in enumerate(data.get('film')):
+            if film.get('title') == title:
+                f = Film(film)
+                f.id = index
+                return Film(film)
 
     def resolve_films(root, info):
         result = []
@@ -270,19 +246,11 @@ class Query(graphene.ObjectType):
 
         return result
 
-    def resolve_film(root, info, title):
-        for index, film in enumerate(data.get('film')):
-            if film.get('title') == title:
-                f = Film(film)
-                f.id = index
-                return Film(film)
-
 
 class Mutation(graphene.ObjectType):
     film_add = graphene.Field(graphene.String, title=graphene.NonNull(graphene.String), input=graphene.NonNull(FilmInput))
 
     def resolve_film_add(root, info, title, input: FilmInput):
-
         planetsIds = []
 
         for planet in input.planets:
