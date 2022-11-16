@@ -9,3 +9,5 @@ inigo_py/lib
 .vscode
 
 .DS_Store
+
+example/inigo_py
