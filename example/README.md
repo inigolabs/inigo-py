@@ -18,3 +18,11 @@ pip3 install -r requirements.txt
 python3 app.py runserver 8080
 ```
 3. Send Graphql requests to [http://127.0.0.1:8080/query](http://127.0.0.1:8080/query)
+
+<br/>
+
+##### HINT
+Dump your schema to a file by running
+```bash
+python3 app.py graphql_schema --schema schema.schema --out schema.graphql
+```

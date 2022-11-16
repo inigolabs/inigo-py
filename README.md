@@ -55,7 +55,10 @@ If not provided, Django DEBUG setting is used.
 **Required.** Obtain a service token from [app.inigo.io](app.inigo.io)
 
 #### __`GRAPHENE_SCHEMA`__
-**Required.** The path to graphene schema instance. If not provided, InigoMiddleware will try to pick it up from __`GRAPHENE.SCHEMA`__ settings.
+**Optional.** The path to graphene schema instance. If not provided, InigoMiddleware will try to pick it up from __`GRAPHENE.SCHEMA`__ settings.
+
+#### __`SCHEMA_PATH`__
+**Optional.** The path to graphql schema file.
 
 #### __`PATH`__
 **Optional. Default:** /graphql. 

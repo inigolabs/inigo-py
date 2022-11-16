@@ -44,6 +44,7 @@ settings.configure(
         'PATH': '/query',
         'JWT': 'authorization',
         'TOKEN': env('INIGO_SERVICE_TOKEN'),
+        'SCHEMA_PATH': './schema.graphql'
     },
 
     MIDDLEWARE=[

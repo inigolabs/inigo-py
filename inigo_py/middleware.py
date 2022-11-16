@@ -116,9 +116,11 @@ class DjangoMiddleware:
         schema = None
         if inigo_settings.get('GRAPHENE_SCHEMA'):
             schema = import_string(inigo_settings.get('GRAPHENE_SCHEMA'))
-        else:
-            if hasattr(settings, 'GRAPHENE') and settings.GRAPHENE.get('SCHEMA'):
-                schema = import_string(settings.GRAPHENE.get('SCHEMA'))
+        elif inigo_settings.get('SCHEMA_PATH'):
+            with open(inigo_settings.get('SCHEMA_PATH'), 'r') as f:
+                schema = f.read()
+        elif hasattr(settings, 'GRAPHENE') and settings.GRAPHENE.get('SCHEMA'):
+            schema = import_string(settings.GRAPHENE.get('SCHEMA'))
 
         if schema:
             c.schema = str.encode(str(schema))
