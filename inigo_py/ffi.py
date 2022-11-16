@@ -42,40 +42,19 @@ def get_ext(system_name):
 system = platform.system().lower()  # linux, windows, darwin
 filename = f'inigo-{ system }-{ get_arch(system) }{ get_ext(system) }'
 
-library = None
 try:
     library = ctypes.CDLL(os.path.join(os.path.dirname(__file__), 'lib', filename))
-except Exception as err:
-    # Unable to open libc dynamic library
-    raise Exception(f"""
-    
-      Unable to open inigo shared library. 
-      
-      Please get in touch with us for support:
-      email: support@inigo.io
-      slack: https://slack.inigo.io
-      
-      Please share the below info with us:
-      error:    { str(err) }
-      uname:    { platform.uname().__str__() }
-      arch:     { platform.architecture().__str__() }
-      
-    """)
 
+    class Config(ctypes.Structure):
+        _fields_ = [
+            ('debug', ctypes.c_bool),
+            ('ingest', ctypes.c_char_p),
+            ('service', ctypes.c_char_p),
+            ('token', ctypes.c_char_p),
+            ('schema', ctypes.c_char_p),
+            ('introspection', ctypes.c_char_p)
+        ]
 
-
-class Config(ctypes.Structure):
-    _fields_ = [
-        ('debug', ctypes.c_bool),
-        ('ingest', ctypes.c_char_p),
-        ('service', ctypes.c_char_p),
-        ('token', ctypes.c_char_p),
-        ('schema', ctypes.c_char_p),
-        ('introspection', ctypes.c_char_p)
-    ]
-
-
-if library:
     create = library.create
     create.argtypes = [ctypes.POINTER(Config)]
     create.restype = ctypes.c_uint64
@@ -140,3 +119,20 @@ if library:
     check_lasterror = library.check_lasterror
     check_lasterror.argtypes = None
     check_lasterror.restype = ctypes.c_char_p
+except Exception as err:
+    # Unable to open libc dynamic library
+    raise Exception(f"""
+        
+          Unable to open inigo shared library. 
+          
+          Please get in touch with us for support:
+          email: support@inigo.io
+          slack: https://slack.inigo.io
+          
+          Please share the below info with us:
+          error:    { str(err) }
+          uname:    { platform.uname().__str__() }
+          arch:     { platform.architecture().__str__() }
+          
+        """)
+

@@ -11,7 +11,10 @@ class Query:
     def __init__(self, instance, query):
         self.handle = 0
         self.instance = instance
-        self.query = str.encode(query)
+
+        self.query = b''
+        if query:
+            self.query = str.encode(query)
 
     def process_request(self, token):
         resp_input = ctypes.create_string_buffer(self.query)
