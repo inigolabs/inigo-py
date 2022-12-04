@@ -1,6 +1,7 @@
 import ctypes
 import json
 import jwt
+import os
 from django.http import JsonResponse
 from django.utils.module_loading import import_string
 from django.conf import settings
@@ -117,8 +118,9 @@ class DjangoMiddleware:
         if inigo_settings.get('GRAPHENE_SCHEMA'):
             schema = import_string(inigo_settings.get('GRAPHENE_SCHEMA'))
         elif inigo_settings.get('SCHEMA_PATH'):
-            with open(inigo_settings.get('SCHEMA_PATH'), 'r') as f:
-                schema = f.read()
+            if os.path.isfile(inigo_settings.get('SCHEMA_PATH')):
+                with open(inigo_settings.get('SCHEMA_PATH'), 'r') as f:
+                    schema = f.read()
         elif hasattr(settings, 'GRAPHENE') and settings.GRAPHENE.get('SCHEMA'):
             schema = import_string(settings.GRAPHENE.get('SCHEMA'))
 
@@ -199,7 +201,11 @@ class DjangoMiddleware:
         # forward to request handler
         response = self.get_response(request)
 
-        if response.headers.get('content-type') != 'application/json':
+        # return if response is not json
+        try:
+            _ = json.loads(response.content)
+        except ValueError:  # includes simplejson.decoder.JSONDecodeError
+            # cannot parse json
             q.ingest()
 
             return response
