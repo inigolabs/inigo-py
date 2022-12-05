@@ -2,6 +2,7 @@ import ctypes
 import json
 import jwt
 import os
+import orjson
 from django.http import JsonResponse
 from django.utils.module_loading import import_string
 from django.conf import settings
@@ -203,7 +204,7 @@ class DjangoMiddleware:
 
         # return if response is not json
         try:
-            _ = json.loads(response.content)
+            _ = orjson.loads(response.content)
         except ValueError:  # includes simplejson.decoder.JSONDecodeError
             # cannot parse json
             q.ingest()
