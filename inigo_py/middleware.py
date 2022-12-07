@@ -139,14 +139,14 @@ class DjangoMiddleware:
 
         error = ffi.check_lasterror()
         if error:
-            raise Exception(error.decode('utf-8'))
+            print("INIGO: " + error.decode('utf-8'))
 
         if self.instance == 0:
-            raise Exception('error, instance can not be created')
+            print("INIGO: error, instance can not be created")
 
     def __call__(self, request):
         # ignore execution if Inigo is not initialized
-        if not self.instance:
+        if self.instance == 0:
             return self.get_response(request)
 
         # 'path' guard -> /graphql
