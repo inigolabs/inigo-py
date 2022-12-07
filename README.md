@@ -38,9 +38,10 @@ MIDDLEWARE = [
 INIGO = {
     'DEBUG': False,
     'TOKEN': 'Your Inigo service token',
-    'GRAPHENE_SCHEMA': 'app.schema.schema',
     'PATH': '/graphql',
     'JWT': 'authorization',
+    'GRAPHENE_SCHEMA': 'app.schema.schema'
+    # 'SCHEMA_PATH': './schema.graphql',
 }
 ```
 
