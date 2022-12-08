@@ -153,12 +153,22 @@ class DjangoMiddleware:
         if request.path != self.path:
             return self.get_response(request)
 
-        if request.method != 'POST':
+        # graphiql request
+        if request.method == 'GET' and ("text/html" in request.META.get("HTTP_ACCEPT", "*/*")):
             return self.get_response(request)
 
-        # read request from body
-        query = json.loads(request.body).get('query')
+        # support only POST and GET requests
+        if request.method != 'POST' and request.method != 'GET':
+            return self.get_response(request)
 
+        # parse request
+        query: str = ''
+        if request.method == "POST":
+            # read request from body
+            query = json.loads(request.body).get('query')
+        elif request.method == "GET":
+            # read request from query param
+            query = request.GET.get('query')
         q = Query(self.instance, query)
 
         # create inigo context if not present. Should exist before 'get_auth_token' call
