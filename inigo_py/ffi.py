@@ -81,14 +81,6 @@ try:
     process_response.restype = None
 
 
-    ingest_query_data = library.ingest_query_data
-    ingest_query_data.argtypes = [
-        ctypes.c_uint64,  # instance
-        ctypes.c_uint64  # request handler
-    ]
-    ingest_query_data.restype = None
-
-
     update_schema = library.update_schema
     update_schema.argtypes = [
         ctypes.c_uint64,  # instance
