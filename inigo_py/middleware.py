@@ -1,6 +1,5 @@
 import ctypes
 import json
-import jwt
 import os
 import orjson
 from django.http import JsonResponse
@@ -10,16 +9,14 @@ from . import ffi
 
 
 class Query:
-    def __init__(self, instance, query):
+    def __init__(self, instance, request):
         self.handle = 0
         self.instance = instance
 
-        self.query = b''
-        if query:
-            self.query = str.encode(query)
+        self.request = request
 
-    def process_request(self, token):
-        resp_input = ctypes.create_string_buffer(self.query)
+    def process_request(self, headers):
+        resp_input = ctypes.create_string_buffer(self.request)
 
         output_ptr = ctypes.c_char_p()
         output_len = ctypes.c_int()
@@ -27,29 +24,25 @@ class Query:
         status_ptr = ctypes.c_char_p()
         status_len = ctypes.c_int()
 
-        auth = b''
-        if token:
-            auth = b'{"jwt":"%s"}' % str.encode(token)
-
         self.handle = ffi.process_request(self.instance,
-                                          ctypes.create_string_buffer(auth), len(auth),
-                                          resp_input, len(self.query),
+                                          ctypes.create_string_buffer(headers), len(headers),
+                                          resp_input, len(self.request),
                                           ctypes.byref(output_ptr), ctypes.byref(output_len),
                                           ctypes.byref(status_ptr), ctypes.byref(status_len))
 
-        output_dict = {}
-        status_dict = {}
+        resp_dict = {}
+        req_dict = {}
 
         if output_len.value:
-            output_dict = json.loads(output_ptr.value[:output_len.value].decode("utf-8"))
+            resp_dict = json.loads(output_ptr.value[:output_len.value].decode("utf-8"))
 
         if status_len.value:
-            status_dict = json.loads(status_ptr.value[:status_len.value].decode("utf-8"))
+            req_dict = json.loads(status_ptr.value[:status_len.value].decode("utf-8"))
 
         ffi.disposeMemory(ctypes.cast(output_ptr, ctypes.c_void_p))
         ffi.disposeMemory(ctypes.cast(status_ptr, ctypes.c_void_p))
 
-        return output_dict, status_dict
+        return resp_dict, req_dict
 
     def process_response(self, resp_body):
         if self.handle == 0:
@@ -75,14 +68,6 @@ class Query:
 
         return output_dict
 
-    def ingest(self):
-        if self.handle == 0:
-            return
-
-        # auto disposes of request handle
-        ffi.ingest_query_data(self.instance, self.handle)
-        self.handle = 0
-
 
 class DjangoMiddleware:
     def __init__(self, get_response):
@@ -95,7 +80,6 @@ class DjangoMiddleware:
 
         # default values
         self.path = '/graphql'
-        self.jwt = 'authorization'  # authorization header name, jwt expected
 
         c = ffi.Config()
 
@@ -131,9 +115,6 @@ class DjangoMiddleware:
         if inigo_settings.get('PATH'):
             self.path = inigo_settings.get('PATH')
 
-        if inigo_settings.get('JWT'):
-            self.jwt = inigo_settings.get('JWT')
-
         # create Inigo instance
         self.instance = ffi.create(ctypes.byref(c))
 
@@ -162,50 +143,41 @@ class DjangoMiddleware:
             return self.get_response(request)
 
         # parse request
-        query: str = ''
+        gReq: bytes = b''
         if request.method == "POST":
             # read request from body
-            query = json.loads(request.body).get('query')
+            gReq = request.body
         elif request.method == "GET":
             # read request from query param
-            query = request.GET.get('query')
-        q = Query(self.instance, query)
+            gReq = str.encode(json.dumps({'query': request.GET.get('query')}))
+        q = Query(self.instance, gReq)
 
-        # create inigo context if not present. Should exist before 'get_auth_token' call
+        # create inigo context if not present. Should exist before 'headers' call
         if hasattr(request, 'inigo') is False:
             request.inigo = InigoContext()
 
-        token = self.get_auth_token(self.jwt, request)
-
         # inigo: process request
-        output, status = q.process_request(token)
+        resp, req = q.process_request(self.headers(request))
 
         # introspection query
-        if output and output.get('data') and output.get('data').get('__schema'):
-            q.ingest()
-
-            return self.respond(output)
-
-        if status and status.get('status') == 'BLOCKED':
-            q.ingest()
-
-            request.inigo._block()
-
-            return self.respond(status)
+        if resp:
+            return self.respond(resp)
 
         # modify query if required
-        if status and status.get('errors') is not None:
+        if req:
             if request.method == 'POST':
                 body = json.loads(request.body)
                 body.update({
-                    'query': output.get('query')
+                    'query': req.get('query'),
+                    'operationName': req.get('operationName'),
+                    'variables': req.get('variables'),
                 })
 
                 request._body = str.encode(json.dumps(body))
             elif request.method == 'GET':
                 params = request.GET.copy()
                 params.update({
-                    'query': output.get('query')
+                    'query': req.get('query')
                 })
                 request.GET = params
 
@@ -217,7 +189,6 @@ class DjangoMiddleware:
             _ = orjson.loads(response.content)
         except ValueError:  # includes simplejson.decoder.JSONDecodeError
             # cannot parse json
-            q.ingest()
 
             return response
 
@@ -229,17 +200,12 @@ class DjangoMiddleware:
         return response
 
     @staticmethod
-    def get_auth_token(header, request):
-        if hasattr(request, 'inigo') and isinstance(request.inigo, InigoContext) is False:
-            raise Warning("'inigo' attr is not InigoContext instance")
+    def headers(request):
+        headers = {}
+        for key, value in request.headers.items():
+            headers[key] = value.split(", ")
 
-        # read from request object
-        if hasattr(request, 'inigo') and isinstance(request.inigo, InigoContext) and request.inigo.auth:
-            return jwt.encode(request.inigo.auth, key=None, algorithm=None)
-
-        # read auth header
-        if request.headers.get(header):
-            return request.headers.get(header)
+        return str.encode(json.dumps(headers))
 
     @staticmethod
     def respond(data):
