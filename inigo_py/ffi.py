@@ -81,12 +81,12 @@ try:
     process_response.restype = None
 
 
-    update_schema = library.update_schema
-    update_schema.argtypes = [
-        ctypes.c_uint64,  # instance
-        ctypes.c_char_p  # input
-    ]
-    update_schema.restype = ctypes.c_bool
+    # update_schema = library.update_schema
+    # update_schema.argtypes = [
+    #     ctypes.c_uint64,  # instance
+    #     ctypes.c_char_p  # input
+    # ]
+    # update_schema.restype = ctypes.c_bool
 
 
     get_version = library.get_version
