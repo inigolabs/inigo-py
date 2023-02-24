@@ -26,6 +26,7 @@ setuptools.setup(
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Framework :: Django',
+        'Framework :: Flask',
         'License :: OSI Approved :: MIT License',
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Libraries',
@@ -36,7 +37,7 @@ setuptools.setup(
         'Programming Language :: Python :: 3.11'
     ],
     python_requires='>= 3.8',
-    keywords="api graphql inigo django graphene",
+    keywords="api graphql inigo django flask graphene",
     package_data={
         'inigo_py': [
             'lib/*',

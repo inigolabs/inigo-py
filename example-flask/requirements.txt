@@ -1,0 +1,10 @@
+Flask==2.2.2
+Flask-Cors==3.0.10
+graphene==3.1.1
+graphql-server==3.0.0b5
+PyJWT==2.3.0
+PyYAML==6.0
+python-dotenv==0.21.1
+Werkzeug==2.2.3
+
+inigo_py
