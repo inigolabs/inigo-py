@@ -1,7 +1,6 @@
 import ctypes
 import json
 import os
-import orjson
 from django.http import JsonResponse
 from django.utils.module_loading import import_string
 from django.conf import settings
@@ -74,6 +73,8 @@ class DjangoMiddleware:
         # save response processing fn
         self.get_response = get_response
 
+        self.instance = 0
+
         if ffi.library is None:
             # library is not found, skip middleware initialization
             return
@@ -87,6 +88,9 @@ class DjangoMiddleware:
 
         if hasattr(settings, 'INIGO'):
             inigo_settings = settings.INIGO
+
+        if inigo_settings.get('ENABLE') is False:
+            return
 
         # process Inigo settings
         if inigo_settings.get('DEBUG'):
@@ -183,14 +187,6 @@ class DjangoMiddleware:
 
         # forward to request handler
         response = self.get_response(request)
-
-        # return if response is not json
-        try:
-            _ = orjson.loads(response.content)
-        except ValueError:  # includes simplejson.decoder.JSONDecodeError
-            # cannot parse json
-
-            return response
 
         # inigo: process response
         processed_response = q.process_response(response.content)

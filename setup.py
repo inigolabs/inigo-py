@@ -22,7 +22,7 @@ setuptools.setup(
     },
     license='MIT',
     packages=['inigo_py'],
-    install_requires=['pyjwt', 'django', 'orjson'],
+    install_requires=['pyjwt', 'django'],
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Framework :: Django',
