@@ -1,11 +1,12 @@
 import pathlib
 
 from .ffi import get_version
-from .middleware import DjangoMiddleware, InigoContext
+from .middleware import DjangoMiddleware, FlaskMiddleware, InigoContext
 
 __all__ = [
     'get_version',
     'DjangoMiddleware',
+    'FlaskMiddleware',
     'InigoContext'
 ]
 

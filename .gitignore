@@ -10,4 +10,6 @@ inigo_py/lib
 
 .DS_Store
 
+venv
 example/inigo_py
+example-flask/inigo_py

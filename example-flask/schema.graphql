@@ -1,0 +1,110 @@
+type Query {
+  version: Version!
+  login(username: String!, password: String!): String
+  logout: Boolean!
+  film(title: String!): Film
+  films: [Film!]!
+  starships: [Starship!]!
+}
+
+type Version {
+  name: String!
+  version: String!
+  commit: String!
+  date: String!
+}
+
+type Film {
+  id: ID!
+  title: String!
+  director: String!
+  episodeId: Int!
+  openingCrawl: String!
+  producer: String! @deprecated(reason: "deprecated")
+  vehicles: [Vehicle!]
+  planets: [Planet!]
+}
+
+type Vehicle {
+  id: ID!
+  cargoCapacity: Int
+  consumables: String!
+  costInCredits: Int!
+  crew: String!
+  length: Float
+  manufacturer: String!
+  maxAtmospheringSpeed: String!
+  model: String!
+  name: String!
+  passengerCapacity: Int
+  pilotedBy: [Person!]!
+}
+
+type Person {
+  id: ID!
+  name: String!
+  ssn: String!
+  birthYear: String!
+  eyeColor: String!
+  gender: String!
+  hairColor: String!
+  height: Int!
+  mass: Float
+  skinColor: String
+  appearedIn: [Film!]!
+  pilotedStarship: [Starship!]!
+}
+
+type Starship {
+  id: ID!
+  cargoCapacity: Int
+  consumables: String!
+  costInCredits: Int!
+  crew: String!
+  hyperdriveRating: String!
+  length: Float!
+  manufacturer: String!
+  maxAtmospheringSpeed: String!
+  maximumMegalights: String
+  model: String!
+  name: String!
+  passengerCapacity: Int
+  pilotedBy: [Person!]!
+}
+
+type Planet {
+  id: ID!
+  climate: String!
+  diameter: Int
+  gravity: String!
+  name: String!
+  orbitalPeriod: String!
+  population: Int
+  rotationPeriod: String!
+  surfaceWater: String!
+  terrain: String!
+}
+
+type Mutation {
+  filmAdd(title: String!, input: FilmInput!): String
+}
+
+input FilmInput {
+  director: String!
+  producer: String!
+  episodeId: Int!
+  openingCrawl: String!
+  planets: [PlanetInput!]
+}
+
+input PlanetInput {
+  climate: String!
+  diameter: Int
+  gravity: String!
+  name: String!
+  orbitalPeriod: String!
+  population: Int
+  rotationPeriod: String!
+  surfaceWater: String!
+  terrain: String!
+}
