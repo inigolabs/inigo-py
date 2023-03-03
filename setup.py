@@ -14,7 +14,7 @@ setuptools.setup(
     description='Inigo Middleware',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url='https://github.com/kolia-kaploniuk/inigo-py',
+    url='https://github.com/inigolabs/inigo-py',
     project_urls={
         "Bug Tracker": "https://github.com/inigolabs/inigo-py/issues",
         "Documentation": "https://docs.inigo.io",
