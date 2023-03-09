@@ -4,8 +4,8 @@ from dotenv import load_dotenv
 from flask import Flask
 from flask_cors import CORS
 
-from inigo_py import FlaskMiddleware
-from middleware import LogBlockedInigoRequestsMiddleware, LogMiddleware, AuthMiddleware
+from inigo_py.flask import Middleware
+from middleware import LogMiddleware
 
 app = Flask(__name__)
 
@@ -33,10 +33,8 @@ app.config.update(config)
 # add the CORS middleware
 CORS(app)
 
-app.wsgi_app = AuthMiddleware(app.wsgi_app)
-app.wsgi_app = FlaskMiddleware(app)
+app.wsgi_app = Middleware(app)
 app.wsgi_app = LogMiddleware(app.wsgi_app)
-app.wsgi_app = LogBlockedInigoRequestsMiddleware(app.wsgi_app)
 
 # needs to be imported after Flask is configured as it's trying to access settings
 from graphql_server.flask import GraphQLView

@@ -5,6 +5,5 @@ graphql-server==3.0.0b5
 PyJWT==2.6.0
 PyYAML==6.0
 python-dotenv==0.21.1
-Werkzeug==2.2.3
 
 inigo_py
