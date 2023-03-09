@@ -6,7 +6,6 @@ graphene_django==3.0.0
 PyJWT==2.6.0
 django-cors-headers
 ruamel.yaml
-Werkzeug==2.2.3
 
 # use latest
 inigo_py

@@ -1,13 +1,11 @@
 import pathlib
 
 from .ffi import get_version
-from .middleware import DjangoMiddleware, FlaskMiddleware, InigoContext
+from .query import Query
 
 __all__ = [
     'get_version',
-    'DjangoMiddleware',
-    'FlaskMiddleware',
-    'InigoContext'
+    'Query'
 ]
 
 __version__ = (pathlib.Path(__file__).parent.resolve() / "VERSION").read_text(encoding="utf-8").strip()

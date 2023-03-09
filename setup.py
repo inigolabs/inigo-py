@@ -1,4 +1,4 @@
-import setuptools
+from setuptools import find_packages, setup
 import pathlib
 
 # read README.md
@@ -6,7 +6,26 @@ root = pathlib.Path(__file__).parent.resolve()
 long_description = (root / "README.md").read_text(encoding="utf-8")
 version = (root / "inigo_py" / "VERSION").read_text(encoding="utf-8").strip()
 
-setuptools.setup(
+install_requires = []
+
+## werkzeug
+install_flask_requires = [
+    "flask>=2,<3",
+    "werkzeug>=2.2.3",
+]
+
+install_django_requires = [
+    "django>=4,<5",
+]
+
+install_all_requires = (
+        install_requires
+        + install_flask_requires
+        + install_django_requires
+)
+
+
+setup(
     name='inigo_py',
     version=version,
     author='Nikolai Kaploniuk',
@@ -21,12 +40,10 @@ setuptools.setup(
         "Support": "https://slack.inigo.io",
     },
     license='MIT',
-    packages=['inigo_py'],
-    install_requires=['pyjwt', 'django'],
+    packages=find_packages(include=["inigo_py*"]),
+    install_requires=[],
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
-        'Framework :: Django',
-        'Framework :: Flask',
         'License :: OSI Approved :: MIT License',
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Libraries',
@@ -37,11 +54,16 @@ setuptools.setup(
         'Programming Language :: Python :: 3.11'
     ],
     python_requires='>= 3.8',
-    keywords="api graphql inigo django flask graphene",
+    keywords="api graphql inigo graphene",
     package_data={
         'inigo_py': [
             'lib/*',
             'VERSION'
         ]
+    },
+    extras_require={
+        "all": install_all_requires,
+        "flask": install_flask_requires,
+        "django": install_django_requires,
     },
 )

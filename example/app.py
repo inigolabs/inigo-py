@@ -54,9 +54,7 @@ settings.configure(
         'django.contrib.auth.middleware.AuthenticationMiddleware',
 
         'middleware.log_request',
-        'middleware.auth',
-        'middleware.log_inigo_blocked_requests',
-        'inigo_py.DjangoMiddleware',
+        'inigo_py.django.Middleware',
     ]
 )
 

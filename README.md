@@ -32,7 +32,7 @@ pip install inigo-py
 ```python
 MIDDLEWARE = [
     ...
-    'inigo_py.DjangoMiddleware',
+    'inigo_py.django.Middleware',
 ]
 
 INIGO = {
@@ -131,7 +131,7 @@ def auth(get_response):
 MIDDLEWARE = [
     ...
     'middleware.auth',
-    'inigo_py.DjangoMiddleware',
+    'inigo_py.django.Middleware',
 ]
   ```
 
@@ -161,7 +161,7 @@ def log_inigo_blocked_requests(get_response):
 MIDDLEWARE = [
     ...
     'middleware.log_inigo_blocked_requests',
-    'inigo_py.DjangoMiddleware',
+    'inigo_py.django.Middleware',
 ]
 ```
 
