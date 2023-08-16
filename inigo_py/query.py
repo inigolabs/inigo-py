@@ -53,12 +53,10 @@ class Query:
             ctypes.byref(output_ptr), ctypes.byref(output_len)
         )
 
-        output_dict = {}
-
         if output_len.value:
-            output_dict = json.loads(output_ptr.value[:output_len.value].decode("utf-8"))
+            resp_body = output_ptr.value[:output_len.value][:]
 
         ffi.disposeMemory(ctypes.cast(output_ptr, ctypes.c_void_p))
         ffi.disposeHandle(self.handle)
 
-        return output_dict
+        return resp_body

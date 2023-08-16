@@ -52,7 +52,10 @@ try:
             ('service', ctypes.c_char_p),
             ('token', ctypes.c_char_p),
             ('schema', ctypes.c_char_p),
-            ('introspection', ctypes.c_char_p)
+            ('introspection', ctypes.c_char_p),
+            ('egress_url', ctypes.c_char_p),
+            ('gateway', ctypes.c_uint64),
+            ('disable_response_data', ctypes.c_bool),
         ]
 
     create = library.create

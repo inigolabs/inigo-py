@@ -4,6 +4,7 @@ import os
 
 from django.conf import settings
 from django.http import JsonResponse
+from django.http import HttpResponse
 from django.utils.module_loading import import_string
 
 from inigo_py import ffi, Query
@@ -24,6 +25,7 @@ class Middleware:
         self.path = '/graphql'
 
         c = ffi.Config()
+        c.disable_response_data = False
 
         inigo_settings = {}
 
@@ -126,11 +128,7 @@ class Middleware:
         response = self.get_response(request)
 
         # inigo: process response
-        processed_response = q.process_response(response.content)
-        if processed_response:
-            return self.respond(processed_response)
-
-        return response
+        return HttpResponse(q.process_response(response.content), status=200, content_type='application/json')
 
     @staticmethod
     def headers(request):
