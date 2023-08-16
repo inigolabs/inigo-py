@@ -25,6 +25,7 @@ class Middleware:
         self.path = '/graphql'
 
         c = ffi.Config()
+        c.disable_response_data = False
 
         inigo_settings = {}
         if 'INIGO' in app.config:
@@ -161,13 +162,11 @@ class Middleware:
         # forward to request handler
         # populates the inner_* vars, as triggers inner call of the collector closure
         response = self.app(environ, start_response_collector)
-        content = b"".join(response).decode("utf8")
 
         # inigo: process response
-        processed_response = q.process_response(content.encode("utf8"))
-        if processed_response:
-            return self.respond(processed_response, start_response)
-
+        response = [q.process_response(b"".join(response))]
+        # removes Content-Length from original headers
+        inner_headers = [(key, value) for key, value in inner_headers if key != 'Content-Length']
         start_response(inner_status, inner_headers, inner_exc_info)
         return response
 
