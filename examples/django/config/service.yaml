@@ -1,0 +1,9 @@
+kind: Service
+name: django_starwars
+spec:
+  path_user_id: header.User-Id
+  path_client_info: header.Client
+  collect_variable_values:
+    enabled: false
+
+  anonymous_profile: guest

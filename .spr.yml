@@ -1,9 +1,8 @@
 githubRepoOwner: inigolabs
 githubRepoName: inigo-py
 githubHost: github.com
-requireChecks: false
-requireApproval: false
-githubRemote: origin
-githubBranch: main
-remoteBranches: []
+requireChecks: true
+requireApproval: true
 mergeMethod: rebase
+mergeQueue: false
+forceFetchTags: false

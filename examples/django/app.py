@@ -53,7 +53,11 @@ settings.configure(
         'django.middleware.common.CommonMiddleware',
         'django.contrib.auth.middleware.AuthenticationMiddleware',
 
+        # custom middlewares
         'middleware.log_request',
+        'middleware.set_random_user_and_client_middleware',
+
+        # make sure inigo middleware is run after any auth middleware
         'inigo_py.django.Middleware',
     ]
 )

@@ -1,7 +1,7 @@
 
-## Starwars Example
+## StarWars Flask Example
 
-This is the simplest Flask and Graphene graphql application with Inigo middleware
+This is a simple Flask StarWars GraphQL application using Graphene with Inigo middleware
 
 
 <br/>

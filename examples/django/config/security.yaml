@@ -1,0 +1,9 @@
+kind: Security
+name: django_starwars
+spec:
+  profiles:
+  - name: guest
+    require_operation_name: true
+    max_depth: 3
+    max_height: 9
+    max_directives: 5
