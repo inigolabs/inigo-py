@@ -23,6 +23,8 @@ type Film {
   producer: String! @deprecated(reason: "deprecated")
   vehicles: [Vehicle!]
   planets: [Planet!]
+
+  error: Boolean
 }
 
 type Vehicle {

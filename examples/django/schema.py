@@ -7,6 +7,7 @@ import inigo_py
 
 from ruamel.yaml import YAML
 from pathlib import Path
+from graphql import GraphQLError
 
 yaml = YAML(typ='safe', pure=True)
 data = yaml.load(Path('./starwars_data.yaml'))
@@ -117,6 +118,10 @@ class Film(graphene.ObjectType):
 
     vehicles = graphene.List(graphene.NonNull(Vehicle))
     planets = graphene.List(graphene.NonNull(Planet))
+    error = graphene.Boolean(required=False)
+
+    def resolve_error(root, info):
+        return GraphQLError('error message')
 
     def resolve_vehicles(root, info):
         result = []
