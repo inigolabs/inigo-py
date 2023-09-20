@@ -2,6 +2,9 @@ import ctypes
 import json
 import os
 import sys
+import platform
+import re
+
 from importlib import import_module
 from io import BytesIO
 from urllib.parse import parse_qs
@@ -9,7 +12,6 @@ from urllib.parse import parse_qs
 from werkzeug.datastructures import EnvironHeaders
 
 from inigo_py import ffi, Query
-
 
 class Middleware:
     def __init__(self, app):
@@ -26,6 +28,8 @@ class Middleware:
 
         c = ffi.Config()
         c.disable_response_data = False
+        c.name = str.encode('inigo-py : flask')
+        c.runtime = str.encode('python' + re.search(r'\d+\.\d+', platform.sys.version).group(0))
 
         inigo_settings = {}
         if 'INIGO' in app.config:
