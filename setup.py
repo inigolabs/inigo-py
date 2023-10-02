@@ -11,7 +11,7 @@ install_requires = []
 ## werkzeug
 install_flask_requires = [
     "flask>=2,<3",
-    "werkzeug>=2.2.3",
+    "werkzeug>=2.2.3,<3.0.0",
 ]
 
 install_django_requires = [
