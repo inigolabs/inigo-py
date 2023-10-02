@@ -2,7 +2,6 @@ import os
 import platform
 import ctypes
 
-
 def get_arch(system_name):
     machine = platform.machine().lower()
     if system_name == 'darwin':
@@ -48,11 +47,11 @@ try:
     class Config(ctypes.Structure):
         _fields_ = [
             ('debug', ctypes.c_bool),
-            ('ingest', ctypes.c_char_p),
+            ('name', ctypes.c_char_p),
             ('service', ctypes.c_char_p),
             ('token', ctypes.c_char_p),
             ('schema', ctypes.c_char_p),
-            ('introspection', ctypes.c_char_p),
+            ('runtime', ctypes.c_char_p),
             ('egress_url', ctypes.c_char_p),
             ('gateway', ctypes.c_uint64),
             ('disable_response_data', ctypes.c_bool),

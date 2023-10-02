@@ -1,6 +1,8 @@
 import ctypes
 import json
 import os
+import platform
+import re
 
 from django.conf import settings
 from django.http import JsonResponse
@@ -8,7 +10,6 @@ from django.http import HttpResponse
 from django.utils.module_loading import import_string
 
 from inigo_py import ffi, Query
-
 
 class Middleware:
     def __init__(self, get_response):
@@ -26,6 +27,8 @@ class Middleware:
 
         c = ffi.Config()
         c.disable_response_data = False
+        c.name = str.encode('inigo-py : django')
+        c.runtime = str.encode('python' + re.search(r'\d+\.\d+', platform.sys.version).group(0))
 
         inigo_settings = {}
 
