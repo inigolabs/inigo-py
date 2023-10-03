@@ -76,6 +76,7 @@ class Middleware:
             print("INIGO: error, instance can not be created")
 
     def __call__(self, environ, start_response):
+        print('INIGO MIDDLEWARE: called')
         # ignore execution if Inigo is not initialized
         if self.instance == 0:
             return self.app(environ, start_response)
@@ -94,6 +95,7 @@ class Middleware:
         if request_method != 'POST' and request_method != 'GET':
             return self.app(environ, start_response)
 
+        print('INIGO MIDDLEWARE: parsing request')
         # parse request
         g_req: bytes = b''
         if request_method == "POST":
@@ -121,6 +123,7 @@ class Middleware:
 
         headers = dict(EnvironHeaders(environ).to_wsgi_list())
 
+        print('INIGO MIDDLEWARE: processing request')
         # inigo: process request
         resp, req = q.process_request(self.headers(headers))
 
@@ -163,15 +166,20 @@ class Middleware:
             # Not calling start_response(), as we will modify the headers first.
             return None
 
+        print('INIGO MIDDLEWARE: forwarding to downstream')
         # forward to request handler
         # populates the inner_* vars, as triggers inner call of the collector closure
         response = self.app(environ, start_response_collector)
+        print('INIGO MIDDLEWARE: downstream responded')
 
         # inigo: process response
         response = [q.process_response(b"".join(response))]
+        print('INIGO MIDDLEWARE: response processed')
         # removes Content-Length from original headers
         inner_headers = [(key, value) for key, value in inner_headers if key != 'Content-Length']
+        print('INIGO MIDDLEWARE: headers collected')
         start_response(inner_status, inner_headers, inner_exc_info)
+        print('INIGO MIDDLEWARE: response started')
         return response
 
     @staticmethod
