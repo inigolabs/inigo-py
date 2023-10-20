@@ -1,4 +1,4 @@
-Django==4.1.7
+Django>=4.1.10
 django_environ==0.9.0
 environ==1.0
 graphene==3.1.1
